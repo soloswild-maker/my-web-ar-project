@@ -2,62 +2,71 @@
 <html>
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Web AR Video Tracking</title>
-    <!-- Include A-Frame and MindAR A-Frame libraries -->
+    <title>Language AR Experience</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
   </head>
   <body>
-    <!-- AR Scene Container -->
+    <!-- AR Scene Container using your compiled multi-target targets.mind file -->
     <a-scene 
-      mindar-image="imageTargetSrc: targets.mind;" 
+      mindar-image="imageTargetSrc: targets.mind; maxTrack: 1;" 
       color-space="sRGB" 
       renderer="colorManagement: true, physicallyCorrectLights" 
       vr-mode-ui="enabled: false" 
       device-orientation-permission-ui="enabled: false">
       
       <a-assets>
-        <!-- Preload your MP4 video (replace 'your-video.mp4' with video you want to use) -->
-        <video 
-          id="ar-video" 
-          src="Line Town.mp4" 
-          preload="auto" 
-          loop 
-          crossorigin="anonymous" 
-          playsinline>
-        </video>
+        <!-- Preload all 4 language videos -->
+        <video id="video-japanese" src="JapaneseAR.mp4" preload="auto" loop crossorigin="anonymous" playsinline></video>
+        <video id="video-spanish" src="SpanishAR.mp4" preload="auto" loop crossorigin="anonymous" playsinline></video>
+        <video id="video-arab" src="ArabAR.mp4" preload="auto" loop crossorigin="anonymous" playsinline></video>
+        <video id="video-chinese" src="ChineseAR.mp4" preload="auto" loop crossorigin="anonymous" playsinline></video>
       </a-assets>
 
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-      <!-- Target entity mapped to index 0 -->
-      <a-entity id="ar-target" mindar-image-target="targetIndex: 0">
-        <!-- A-Plane mapped with the video. 
-             Change width and height to match your video/target aspect ratio -->
-        <a-plane 
-          src="#ar-video" 
-          position="0 0 0" 
-          height="1" 
-          width="1.77" 
-          rotation="0 0 0">
-        </a-plane>
+      <!-- Target 0: Japanese -->
+      <a-entity class="ar-target" data-video="video-japanese" mindar-image-target="targetIndex: 0">
+        <a-plane src="#video-japanese" position="0 0 0" height="1" width="1.77"></a-plane>
+      </a-entity>
+
+      <!-- Target 1: Spanish -->
+      <a-entity class="ar-target" data-video="video-spanish" mindar-image-target="targetIndex: 1">
+        <a-plane src="#video-spanish" position="0 0 0" height="1" width="1.77"></a-plane>
+      </a-entity>
+
+      <!-- Target 2: Arab -->
+      <a-entity class="ar-target" data-video="video-arab" mindar-image-target="targetIndex: 2">
+        <a-plane src="#video-arab" position="0 0 0" height="1" width="1.77"></a-plane>
+      </a-entity>
+
+      <!-- Target 3: Chinese -->
+      <a-entity class="ar-target" data-video="video-chinese" mindar-image-target="targetIndex: 3">
+        <a-plane src="#video-chinese" position="0 0 0" height="1" width="1.77"></a-plane>
       </a-entity>
       
     </a-scene>
 
     <script>
       document.addEventListener("DOMContentLoaded", function() {
-        const targetEntity = document.querySelector('#ar-target');
-        const videoElement = document.querySelector('#ar-video');
+        const targets = document.querySelectorAll('.ar-target');
 
-        // Play video automatically when target image is scanned
-        targetEntity.addEventListener('targetFound', () => {
-          videoElement.play();
-        });
+        targets.forEach((target) => {
+          const videoId = target.getAttribute('data-video');
+          const video = document.querySelector(`#${videoId}`);
 
-        // Pause video when target image leaves the camera view
-        targetEntity.addEventListener('targetLost', () => {
-          videoElement.pause();
+          // Play the corresponding video when its target image is scanned
+          target.addEventListener('targetFound', () => {
+            console.log(`Target found for: ${videoId}`);
+            video.play();
+          });
+
+          // Pause and reset the video when looking away from the image
+          target.addEventListener('targetLost', () => {
+            console.log(`Target lost for: ${videoId}`);
+            video.pause();
+            video.currentTime = 0;
+          });
         });
       });
     </script>
